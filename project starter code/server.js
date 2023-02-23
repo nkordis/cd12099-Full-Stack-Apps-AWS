@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import {filterImageFromURL, deleteLocalFiles} from './util/util.js';
+import axios from "axios";
 
 
 
@@ -23,8 +24,16 @@ import {filterImageFromURL, deleteLocalFiles} from './util/util.js';
     if(!image_url){
       res.status(400).send("Error - Please provide an image url");
     }else {
+
+      // call axios to get the image and convert it to a buffer
+      const imageBuffer = await axios({
+        method: "get",
+        url: image_url,
+        responseType: "arraybuffer",
+      }).then((response) => Buffer.from(response.data, "binary"));
+
       // call filterImageFromURL(image_url) to filter the image
-      const filteredImage = await filterImageFromURL(image_url);
+      const filteredImage = await filterImageFromURL(imageBuffer);
 
       //send the resulting file in the response
       res.status(200).sendFile(filteredImage);
